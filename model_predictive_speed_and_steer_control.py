@@ -438,8 +438,8 @@ def do_simulation(cx, cy, cyaw, ck, sp, dl, initial_state):
             plt.plot(cx[target_ind], cy[target_ind], "xg", label="target")
             plot_car(state.x, state.y, state.yaw, steer=di)
             plt.axis("equal")
-            plt.xlim([state.x - 20, state.x + 20]) #zoom cận lại mô hình xe ở trục x
-            plt.ylim([state.y - 20, state.y + 20]) #zoom cận lại mô hình xe ở trục y
+            #plt.xlim([state.x - 20, state.x + 20]) #zoom cận lại mô hình xe ở trục x
+            #plt.ylim([state.y - 20, state.y + 20]) #zoom cận lại mô hình xe ở trục y
             plt.grid(True)
             plt.title("Time[s]:" + str(round(time, 2))
                     + ", speed[km/h]:" + str(round(state.v * 3.6, 2))+", Delta: "+ str(round(math.degrees(di),2)))
@@ -554,10 +554,10 @@ def main():
     print(__file__ + " start!!")
 
     dl = 1.0  # course tick
-    # cx, cy, cyaw, ck = get_straight_course(dl)
-    # cx, cy, cyaw, ck = get_straight_course2(dl)
+    #cx, cy, cyaw, ck = get_straight_course(dl)
+    cx, cy, cyaw, ck = get_straight_course2(dl)
     #cx, cy, cyaw, ck = get_straight_course3(dl)
-    cx, cy, cyaw, ck = get_forward_course(dl)
+    #cx, cy, cyaw, ck = get_forward_course(dl)
     # cx, cy, cyaw, ck = get_switch_back_course(dl)
 
     sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
