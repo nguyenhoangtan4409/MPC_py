@@ -235,15 +235,14 @@ def iterative_linear_mpc_control(xref, x0, dref, oa, od):
     for i in range(MAX_ITER):
         xbar = predict_motion(x0, oa, od, xref)
         poa, pod = oa[:], od[:]
-        print(dref)
         oa, od, ox, oy, oyaw, ov = linear_mpc_control(xref, xbar, x0, dref)
-
+        
         du = sum(abs(oa - poa)) + sum(abs(od - pod))  # calc u change value
         if du <= DU_TH:
             break
     else:
         print("Iterative is max iter")
-
+    oa  = [0, 0, 0, 0, 0]
     return oa, od, ox, oy, oyaw, ov
 
 
@@ -299,7 +298,9 @@ def linear_mpc_control(xref, xbar, x0, dref):
     else:
         print("Error: Cannot solve mpc..")
         oa, odelta, ox, oy, oyaw, ov = None, None, None, None, None, None
-
+    
+    #ov = [3, 3, 3, 3, 3, 3]
+    print(ov)
     return oa, odelta, ox, oy, oyaw, ov
 
 
@@ -432,14 +433,14 @@ def do_simulation(cx, cy, cyaw, ck, sp, dl, initial_state):
                     lambda event: [exit(0) if event.key == 'escape' else None])
             if ox is not None:
                 plt.plot(ox, oy, "xr", label="MPC")
-            plt.plot(cx, cy, "-r", label="course")
-            plt.plot(x, y, "ob", label="trajectory")
-            plt.plot(xref[0, :], xref[1, :], "xk", label="xref")
-            plt.plot(cx[target_ind], cy[target_ind], "xg", label="target")
+            plt.plot(cx, cy, "-r", label="course") #red line_reference
+            plt.plot(x, y, "ob", label="trajectory")#blue_o_trajectory
+            plt.plot(xref[0, :], xref[1, :], "xk", label="xref")#black_x_reference
+            #plt.plot(cx[target_ind], cy[target_ind], "xg", label="target")
             plot_car(state.x, state.y, state.yaw, steer=di)
             plt.axis("equal")
-            #plt.xlim([state.x - 20, state.x + 20]) #zoom cận lại mô hình xe ở trục x
-            #plt.ylim([state.y - 20, state.y + 20]) #zoom cận lại mô hình xe ở trục y
+            plt.xlim([state.x - 20, state.x + 20]) #zoom cận lại mô hình xe ở trục x
+            plt.ylim([state.y - 20, state.y + 20]) #zoom cận lại mô hình xe ở trục y
             plt.grid(True)
             plt.title("Time[s]:" + str(round(time, 2))
                     + ", speed[km/h]:" + str(round(state.v * 3.6, 2))+", Delta: "+ str(round(math.degrees(di),2)))
@@ -537,15 +538,15 @@ def get_switch_back_course(dl):
     ay = [0.0, 0.0, 20.0, 35.0, 20.0]
     cx, cy, cyaw, ck, s = cubic_spline_planner.calc_spline_course(
         ax, ay, ds=dl)
-    ax = [35.0, 10.0, 0.0, 0.0]
-    ay = [20.0, 30.0, 5.0, 0.0]
-    cx2, cy2, cyaw2, ck2, s2 = cubic_spline_planner.calc_spline_course(
-        ax, ay, ds=dl)
-    cyaw2 = [i - math.pi for i in cyaw2]
-    cx.extend(cx2)
-    cy.extend(cy2)
-    cyaw.extend(cyaw2)
-    ck.extend(ck2)
+    # ax = [35.0, 10.0, 0.0, 0.0]
+    # ay = [20.0, 30.0, 5.0, 0.0]
+    # cx2, cy2, cyaw2, ck2, s2 = cubic_spline_planner.calc_spline_course(
+    #     ax, ay, ds=dl)
+    # cyaw2 = [i - math.pi for i in cyaw2]
+    # cx.extend(cx2)
+    # cy.extend(cy2)
+    # cyaw.extend(cyaw2)
+    # ck.extend(ck2)
 
     return cx, cy, cyaw, ck
 
@@ -555,14 +556,14 @@ def main():
 
     dl = 1.0  # course tick
     #cx, cy, cyaw, ck = get_straight_course(dl)
-    cx, cy, cyaw, ck = get_straight_course2(dl)
+    #cx, cy, cyaw, ck = get_straight_course2(dl)
     #cx, cy, cyaw, ck = get_straight_course3(dl)
     #cx, cy, cyaw, ck = get_forward_course(dl)
-    # cx, cy, cyaw, ck = get_switch_back_course(dl)
+    cx, cy, cyaw, ck = get_switch_back_course(dl)
 
     sp = calc_speed_profile(cx, cy, cyaw, TARGET_SPEED)
 
-    initial_state = State(x=cx[0], y=cy[0], yaw=cyaw[0], v=0.0)
+    initial_state = State(x=cx[0], y=cy[0], yaw=cyaw[0], v=3)
 
     t, x, y, yaw, v, d, a = do_simulation(
         cx, cy, cyaw, ck, sp, dl, initial_state)
@@ -570,7 +571,7 @@ def main():
     if show_animation:  # pragma: no cover
         plt.close("all")
         plt.subplots()
-        plt.plot(cx, cy, "-r", label="spline")
+        plt.plot(cx, cy, "-r", label="spline") #ref
         plt.plot(x, y, "-g", label="tracking")
         plt.grid(True)
         plt.axis("equal")
@@ -582,7 +583,7 @@ def main():
         plt.plot(t, v, "-r", label="speed")
         plt.grid(True)
         plt.xlabel("Time [s]")
-        plt.ylabel("Speed [kmh]")
+        plt.ylabel("Speed [m/s]")
 
         plt.show()
 
